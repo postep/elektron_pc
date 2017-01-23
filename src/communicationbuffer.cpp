@@ -106,16 +106,87 @@ void CommunicationBuffer::controllEvent(){
 	std::cout << "controllEvent" << std::endl;
 }
 
-int CommunicationBuffer::sendStruct(){
+int CommunicationBuffer::send(){
+	char frame[FRAME_LEN];
+	int ret = 0;
 
+	uint64_t timestamp = this->fill_timestamp(this->txFrame);
+	int frame_size = this->create_hdlc_frame(frame+1, this->txFrame);
+	frame[0] = 0x7e;
+	frame_size++;
+	for(int i = 0; i < SEND_REPEAT; i++){
+		int write_return = write(this->uart_desc, frame, frame_size);
+		if(write_return <= 0){
+			ret--;
+		}
+	}
+	if (ret > -SEND_REPEAT){
+		tx_timestamps_set.insert(timestamp);
+	}
+	return ret;
 }
 
-int CommunicationBuffer::receiveStruct(){
+int CommunicationBuffer::receive(){
+	char rx[BUFFER_LEN];
+	int read_return = read(this->uart_desc, rx, sizeof rx);
+	int i = 0;
+	while(i < read_return){
+		rx_data.push(rx[i]);
+		i++;
+	}
 
+	int messages_count = 0;
+
+	while(!rx_data.empty()){
+		char got_message = true;
+		unsigned int message_length = 0;
+		RxFrame package;
+		yahdlc_control_t control_recv;
+		char c;
+		c = rx_data.front();
+		rx_data.pop();
+		rx_global_buffer[rx_global_iterator] = c;
+		rx_global_iterator++;
+		if(rx_global_iterator > MESSAGE_BUFFER_LEN){
+			rx_global_iterator = 0;
+		}
+
+		yahdlc_get_data(&control_recv, rx_global_buffer, rx_global_iterator, (char*)(&package), &message_length);
+		got_message = (message_length > 10);
+
+		if(got_message){
+			auto tx_iter = tx_timestamps_set.find(package.timestamp);
+			if(1 || tx_iter != tx_timestamps_set.end()){
+				//rx_packages.push(DataRx(package, control_recv.seq_no & 0x7e, (control_recv.seq_no >> 7) & 0x1));
+				//tx_timestamps_set.erase(tx_iter);
+				std::cout << "received" << package.timestamp << std::endl;
+			}
+			//rx_packages.push(DataRx(package, control_recv.seq_no & 0x7e, (control_recv.seq_no >> 7) & 0x1));
+			rx_global_iterator = 0;
+			messages_count++;
+		}
+	}
+	return messages_count;
 }
 
 int CommunicationBuffer::initCommunication(){
-	
+	char *portname = "/dev/ttyS0";
+	this->uart_desc = open(portname, O_RDWR | O_NOCTTY | O_SYNC);
+	if (this->uart_desc < 0){
+		error_message ("error %d opening %s: %s");
+		return -1;
+	}
+	int err = set_interface_attribs(this->uart_desc, B115200, 0);  // set speed to 115,200 bps, 8n1 (no parity)
+	if (err < 0){
+		err -= 10;
+		return err;
+	}
+	err = set_blocking (this->uart_desc, 0);                // set no blocking
+	if (err < 0){
+		err -= 20;
+		return err;
+	}
+	return this->uart_desc;
 }
 
 void CommunicationBuffer::txEvent(){
@@ -142,4 +213,89 @@ bool CommunicationBuffer::helpButtons(uint8_t no){
 	std::lock_guard<std::mutex> lock(rxMutex);
 	bool ret = (rxFrame.buttons & 0x01 << no);
 	return ret;
+}
+
+int CommunicationBuffer::create_hdlc_frame(char* frame, TxFrame &package){
+	yahdlc_control_t control;
+	// Initialize the control field structure with frame type and sequence number
+	control.frame = YAHDLC_FRAME_DATA;
+	// Create an empty frame with the control field information
+	unsigned frame_length;
+	yahdlc_frame_data(&control, (char *)(&package), sizeof(TxFrame), frame, &frame_length);
+	return frame_length;
+}
+
+unsigned CommunicationBuffer::fill_timestamp(TxFrame &package){
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	package.timestamp = tv.tv_usec + 1000000*tv.tv_sec;
+	return package.timestamp;
+}
+
+double CommunicationBuffer::get_ping_pong_time(TxFrame & package){
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	unsigned int ret = tv.tv_usec + 1000000*tv.tv_sec - package.timestamp;
+	return ret/1000.0;
+}
+
+void CommunicationBuffer::error_message(char * string){
+	cout << string << errno << endl;
+}
+int CommunicationBuffer::set_interface_attribs (int fd, int speed, int parity){
+	struct termios tty;
+	memset (&tty, 0, sizeof tty);
+	if (tcgetattr (fd, &tty) != 0)
+	{
+			error_message ("error %d from tcgetattr");
+			return -1;
+	}
+	cfsetospeed (&tty, speed);
+	cfsetispeed (&tty, speed);
+
+	tty.c_cflag = (tty.c_cflag & ~CSIZE) | CS8;     // 8-bit chars
+	// disable IGNBRK for mismatched speed tests; otherwise receive break
+	// as \000 chars
+	tty.c_iflag &= ~IGNBRK;         // disable break processing
+	tty.c_lflag = 0;                // no signaling chars, no echo,
+									// no canonical processing
+	tty.c_oflag = 0;                // no remapping, no delays
+	tty.c_cc[VMIN]  = 0;            // read doesn't block
+	tty.c_cc[VTIME] = 0;            // 0.5 seconds read timeout
+
+	tty.c_iflag &= ~(IXON | IXOFF | IXANY); // shut off xon/xoff ctrl
+
+	tty.c_cflag |= (CLOCAL | CREAD);// ignore modem controls,
+									// enable reading
+	tty.c_cflag &= ~(PARENB | PARODD);      // shut off parity
+	tty.c_cflag |= parity;
+	tty.c_cflag &= ~CSTOPB;
+	tty.c_cflag &= ~CRTSCTS;
+
+	if (tcsetattr (fd, TCSANOW, &tty) != 0)
+	{
+			error_message ("error %d from tcsetattr");
+			return -2;
+	}
+	return 0;
+}
+
+int CommunicationBuffer::set_blocking (int fd, int should_block)
+{
+	struct termios tty;
+	memset (&tty, 0, sizeof tty);
+	if (tcgetattr (fd, &tty) != 0)
+	{
+			error_message ("error %d from tggetattr");
+			return -1;
+	}
+
+	tty.c_cc[VMIN]  = should_block ? 1 : 0;
+	tty.c_cc[VTIME] = 5;            // 0.5 seconds read timeout
+
+	if (tcsetattr (fd, TCSANOW, &tty) != 0){
+		error_message ("error %d setting term attributes");
+		return -1;
+	}
+	return 0;
 }

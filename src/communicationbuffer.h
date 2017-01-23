@@ -5,10 +5,34 @@
 #include <thread>
 #include <iostream>
 
+#include <errno.h>
+#include <fcntl.h>
+#include <string.h>
+#include <termios.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <iostream>
+#include <sys/time.h>
+#include <pthread.h>
+#include <queue>
+#include <set>
+
+
+#include "math.h"
+#include "yahdlc/C/yahdlc.h"
+
+
+#define FRAME_LEN 64
+#define BUFFER_LEN 128
+#define MESSAGE_BUFFER_LEN 64
+#define SEND_REPEAT 3
+
+using namespace std;
+
 
 typedef struct 
 {
-	uint32_t timestamp;
+	uint64_t timestamp;
 	uint16_t left_speed;
 	uint16_t right_speed;
 	uint8_t relays;
@@ -18,6 +42,7 @@ typedef struct
 
 typedef struct
 {
+	uint64_t timestamp;
 	uint16_t buttons;
 	double left_position;
 	double right_position;
@@ -65,14 +90,26 @@ private:
 	RxFrame rxFrame;
 	std::mutex txMutex;
 	std::mutex rxMutex;
-	int sendStruct();
-	int receiveStruct();	
+	int send();
+	int receive();
+	int uart_desc;
 	std::thread txThread;
 	std::thread rxThread;
 	void txEvent();
 	void rxEvent();
 	void helpRelays(uint8_t no, bool on);
 	bool helpButtons(uint8_t no);
+	int create_hdlc_frame(char* frame, TxFrame &package);
+	unsigned fill_timestamp(TxFrame &package);
+	double get_ping_pong_time(TxFrame & package);
+	queue <char> rx_data;
+	char rx_global_buffer[MESSAGE_BUFFER_LEN];
+	int rx_global_iterator = 0;
+	char rx_first = 0;
+	std::set <uint64_t> tx_timestamps_set;
+	int set_interface_attribs (int fd, int speed, int parity);
+	int set_blocking (int fd, int should_block);
+	void error_message(char * string);
 };
 
 #endif
