@@ -1,1 +1,1 @@
-/usr/bin/g++-6    -std=c++11 -Wall -pthread -lrt   CMakeFiles/elektron.dir/elektron4.cpp.o CMakeFiles/elektron.dir/communicationbuffer.cpp.o CMakeFiles/elektron.dir/timer.cpp.o  -o elektron -rdynamic 
+/usr/bin/g++    -std=c++11 -Wall -pthread    CMakeFiles/elektron.dir/elektron4.cpp.o CMakeFiles/elektron.dir/communicationbuffer.cpp.o CMakeFiles/elektron.dir/timer.cpp.o CMakeFiles/elektron.dir/yahdlc/C/fcs16.c.o CMakeFiles/elektron.dir/yahdlc/C/yahdlc.c.o  -o elektron -rdynamic 

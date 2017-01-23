@@ -6,33 +6,59 @@
 
 #IncludeRegexTransform: 
 
-/home/postep/Pulpit/elektron_stm/src/communicationbuffer.cpp
+/home/robot/jposteps/elektron_stm/src/communicationbuffer.cpp
 communicationbuffer.h
-/home/postep/Pulpit/elektron_stm/src/communicationbuffer.h
+/home/robot/jposteps/elektron_stm/src/communicationbuffer.h
 
-/home/postep/Pulpit/elektron_stm/src/communicationbuffer.h
+/home/robot/jposteps/elektron_stm/src/communicationbuffer.h
 mutex
 -
 thread
 -
 iostream
 -
+errno.h
+-
+fcntl.h
+-
+string.h
+-
+termios.h
+-
+stdlib.h
+-
+unistd.h
+-
+iostream
+-
+sys/time.h
+-
+pthread.h
+-
+queue
+-
+set
+-
+math.h
+/home/robot/jposteps/elektron_stm/src/math.h
+yahdlc/C/yahdlc.h
+/home/robot/jposteps/elektron_stm/src/yahdlc/C/yahdlc.h
 
-/home/postep/Pulpit/elektron_stm/src/elektron4.cpp
+/home/robot/jposteps/elektron_stm/src/elektron4.cpp
 thread
 -
 iostream
 -
 communicationbuffer.h
-/home/postep/Pulpit/elektron_stm/src/communicationbuffer.h
+/home/robot/jposteps/elektron_stm/src/communicationbuffer.h
 timer.h
-/home/postep/Pulpit/elektron_stm/src/timer.h
+/home/robot/jposteps/elektron_stm/src/timer.h
 
-/home/postep/Pulpit/elektron_stm/src/timer.cpp
+/home/robot/jposteps/elektron_stm/src/timer.cpp
 timer.h
-/home/postep/Pulpit/elektron_stm/src/timer.h
+/home/robot/jposteps/elektron_stm/src/timer.h
 
-/home/postep/Pulpit/elektron_stm/src/timer.h
+/home/robot/jposteps/elektron_stm/src/timer.h
 functional
 -
 chrono
@@ -40,5 +66,9 @@ chrono
 future
 -
 cstdio
+-
+
+/home/robot/jposteps/elektron_stm/src/yahdlc/C/yahdlc.h
+errno.h
 -
 

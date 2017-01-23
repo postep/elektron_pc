@@ -1,3 +1,1 @@
-/home/postep/Pulpit/elektron_stm/build/CMakeFiles/rebuild_cache.dir
-/home/postep/Pulpit/elektron_stm/build/CMakeFiles/edit_cache.dir
-/home/postep/Pulpit/elektron_stm/build/CMakeFiles/elektron.dir
+/home/robot/jposteps/elektron_stm/build/CMakeFiles/elektron.dir
