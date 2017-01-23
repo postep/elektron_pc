@@ -1,15 +1,25 @@
 #include <thread>
 #include <iostream>
+#include<stdio.h>
+#include <termios.h>            //termios, TCSANOW, ECHO, ICANON
+#include <unistd.h>     //STDIN_FILENO
+
 
 #include "communicationbuffer.h"
 #include "timer.h"
 
-
-
 CommunicationBuffer buffer;
 
 void txLoop(void){
-	std::cout << "txLoop" << std::endl;
+	std::cout << buffer.initCommunication();
+	while(1){
+		buffer.setDrivesSpeed(100, 100);
+		std::cout << "txLoop" << std::endl;
+		std::cout << buffer.send() << std::endl;
+		usleep(10000);
+		buffer.receive();
+		buffer.print();
+	}
 }
 
 void userLoop(){
@@ -84,7 +94,6 @@ void userLoop(){
 				break;
 			}
 		}
-		buffer.print();
 	}
 }
 

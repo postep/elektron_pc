@@ -1,13 +1,17 @@
 #include "communicationbuffer.h"
 
 CommunicationBuffer::CommunicationBuffer(){
-
+	this->txFrame.relays = 0;
+	this->txFrame.timestamp = 0;
+	this->txFrame.left_speed = 0;
+	this->txFrame.right_speed = 0;
+	this->txFrame.shutdown = 0;
 }
 
 CommunicationBuffer::~CommunicationBuffer(){
 }
 
-void CommunicationBuffer::setDrivesSpeed(uint16_t left, uint16_t right){
+void CommunicationBuffer::setDrivesSpeed(int16_t left, int16_t right){
 	std::lock_guard<std::mutex> lock(txMutex);
 	this->txFrame.left_speed = left;
 	this->txFrame.right_speed = right;
@@ -110,14 +114,22 @@ int CommunicationBuffer::send(){
 	char frame[FRAME_LEN];
 	int ret = 0;
 
+	this->txMutex.lock();
 	uint64_t timestamp = this->fill_timestamp(this->txFrame);
 	int frame_size = this->create_hdlc_frame(frame+1, this->txFrame);
+	this->txMutex.unlock();
+
+
 	frame[0] = 0x7e;
 	frame_size++;
+	std::cout <<this->txFrame.left_speed << " "<< frame_size << "frame\n";
 	for(int i = 0; i < SEND_REPEAT; i++){
 		int write_return = write(this->uart_desc, frame, frame_size);
+		std::cout << write_return << "writereturn\n";
 		if(write_return <= 0){
 			ret--;
+		}else{
+			ret = write_return;
 		}
 	}
 	if (ret > -SEND_REPEAT){
@@ -152,14 +164,17 @@ int CommunicationBuffer::receive(){
 		}
 
 		yahdlc_get_data(&control_recv, rx_global_buffer, rx_global_iterator, (char*)(&package), &message_length);
-		got_message = (message_length > 10);
+		got_message = (message_length >= sizeof(RxFrame));
 
 		if(got_message){
 			auto tx_iter = tx_timestamps_set.find(package.timestamp);
-			if(1 || tx_iter != tx_timestamps_set.end()){
+			if(tx_iter != tx_timestamps_set.end()){
 				//rx_packages.push(DataRx(package, control_recv.seq_no & 0x7e, (control_recv.seq_no >> 7) & 0x1));
 				//tx_timestamps_set.erase(tx_iter);
 				std::cout << "received" << package.timestamp << std::endl;
+				this->rxMutex.lock();
+				this->rxFrame = package;
+				this->rxMutex.unlock();
 			}
 			//rx_packages.push(DataRx(package, control_recv.seq_no & 0x7e, (control_recv.seq_no >> 7) & 0x1));
 			rx_global_iterator = 0;
@@ -191,10 +206,12 @@ int CommunicationBuffer::initCommunication(){
 
 void CommunicationBuffer::txEvent(){
 	std::cout << "sending:" << std::endl;
+	this->send();
 }
 
 void CommunicationBuffer::rxEvent(){
 	std::cout << "receiving" << std::endl;
+	this->receive();
 	controllEvent();
 }
 

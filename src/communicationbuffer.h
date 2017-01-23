@@ -33,8 +33,8 @@ using namespace std;
 typedef struct 
 {
 	uint64_t timestamp;
-	uint16_t left_speed;
-	uint16_t right_speed;
+	int16_t left_speed;
+	int16_t right_speed;
 	uint8_t relays;
 	uint8_t sound;
 	uint8_t shutdown;
@@ -66,7 +66,7 @@ class CommunicationBuffer{
 public:
 	CommunicationBuffer();
 	~CommunicationBuffer();
-	void setDrivesSpeed(uint16_t left, uint16_t right);
+	void setDrivesSpeed(int16_t left, int16_t right);
 	void setSound(SOUNDS s);
 	void setRelay1(bool b);
 	void setRelay2(bool b);
@@ -84,14 +84,15 @@ public:
 	void print();
 	void controllEvent();
 	int initCommunication();
+	int send();
+	int receive();
 	
 private:
 	TxFrame txFrame;
 	RxFrame rxFrame;
 	std::mutex txMutex;
 	std::mutex rxMutex;
-	int send();
-	int receive();
+
 	int uart_desc;
 	std::thread txThread;
 	std::thread rxThread;
