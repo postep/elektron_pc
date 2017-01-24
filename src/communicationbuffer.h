@@ -32,9 +32,9 @@ using namespace std;
 
 typedef struct 
 {
-	uint64_t timestamp;
-	int16_t left_speed;
-	int16_t right_speed;
+	uint32_t timestamp;
+	int8_t left_speed;
+	int8_t right_speed;
 	uint8_t relays;
 	uint8_t sound;
 	uint8_t shutdown;
@@ -42,10 +42,10 @@ typedef struct
 
 typedef struct
 {
-	uint64_t timestamp;
+	uint32_t timestamp;
 	uint16_t buttons;
-	double left_position;
-	double right_position;
+	int32_t left_position;
+	int32_t right_position;
 	uint16_t battery;
 	uint8_t error;
 }RxFrame;
@@ -66,7 +66,7 @@ class CommunicationBuffer{
 public:
 	CommunicationBuffer();
 	~CommunicationBuffer();
-	void setDrivesSpeed(int16_t left, int16_t right);
+	void setDrivesSpeed(int8_t left, int8_t right);
 	void setSound(SOUNDS s);
 	void setRelay1(bool b);
 	void setRelay2(bool b);
@@ -77,8 +77,8 @@ public:
 	bool isPressedButton2();
 	bool isPressedButton3();
 	bool isPressedButton4();
-	double getLeftDrivePosition();
-	double getRightDrivePosition();
+	int32_t getLeftDrivePosition();
+	int32_t getRightDrivePosition();
 	uint16_t getBatteryMiliV();
 	ERRORS getError();
 	void print();

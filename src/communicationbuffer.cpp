@@ -11,7 +11,7 @@ CommunicationBuffer::CommunicationBuffer(){
 CommunicationBuffer::~CommunicationBuffer(){
 }
 
-void CommunicationBuffer::setDrivesSpeed(int16_t left, int16_t right){
+void CommunicationBuffer::setDrivesSpeed(int8_t left, int8_t right){
 	std::lock_guard<std::mutex> lock(txMutex);
 	this->txFrame.left_speed = left;
 	this->txFrame.right_speed = right;
@@ -59,12 +59,12 @@ bool CommunicationBuffer::isPressedButton4(){
 	return this->helpButtons(3);
 }
 
-double CommunicationBuffer::getLeftDrivePosition(){
+int32_t CommunicationBuffer::getLeftDrivePosition(){
 	std::lock_guard<std::mutex> lock(rxMutex);
 	return this->rxFrame.left_position;
 }
 
-double CommunicationBuffer::getRightDrivePosition(){
+int32_t CommunicationBuffer::getRightDrivePosition(){
 	std::lock_guard<std::mutex> lock(rxMutex);
 	return this->rxFrame.right_position;
 }
@@ -80,7 +80,7 @@ ERRORS CommunicationBuffer::getError(){
 
 void CommunicationBuffer::print(){
 	this->txMutex.lock();
-	std::cout << "DRIVES SPEED:\tL:" << this->txFrame.left_speed << "\t R:" << this->txFrame.right_speed << std::endl;
+	std::cout << "DRIVES SPEED:\tL:" << (int)(this->txFrame.left_speed) << "\t R:" << (int)(this->txFrame.right_speed) << std::endl;
 	std::cout << "RELAYS ON:";
 	for (int i = 0; i < 4; ++i)
 	{
@@ -125,7 +125,6 @@ int CommunicationBuffer::send(){
 	std::cout <<this->txFrame.left_speed << " "<< frame_size << "frame\n";
 	for(int i = 0; i < SEND_REPEAT; i++){
 		int write_return = write(this->uart_desc, frame, frame_size);
-		std::cout << write_return << "writereturn\n";
 		if(write_return <= 0){
 			ret--;
 		}else{
@@ -164,7 +163,7 @@ int CommunicationBuffer::receive(){
 		}
 
 		yahdlc_get_data(&control_recv, rx_global_buffer, rx_global_iterator, (char*)(&package), &message_length);
-		got_message = (message_length >= sizeof(RxFrame));
+		got_message = (message_length == sizeof(RxFrame));
 
 		if(got_message){
 			auto tx_iter = tx_timestamps_set.find(package.timestamp);

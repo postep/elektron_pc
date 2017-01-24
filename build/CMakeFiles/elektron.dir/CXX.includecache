@@ -6,10 +6,6 @@
 
 #IncludeRegexTransform: 
 
-/home/robot/jposteps/elektron_stm/src/communicationbuffer.cpp
-communicationbuffer.h
-/home/robot/jposteps/elektron_stm/src/communicationbuffer.h
-
 /home/robot/jposteps/elektron_stm/src/communicationbuffer.h
 mutex
 -
@@ -43,6 +39,32 @@ math.h
 /home/robot/jposteps/elektron_stm/src/math.h
 yahdlc/C/yahdlc.h
 /home/robot/jposteps/elektron_stm/src/yahdlc/C/yahdlc.h
+
+/home/robot/jposteps/elektron_stm/src/elektron4.cpp
+thread
+-
+iostream
+-
+stdio.h
+-
+termios.h
+-
+unistd.h
+-
+communicationbuffer.h
+/home/robot/jposteps/elektron_stm/src/communicationbuffer.h
+timer.h
+/home/robot/jposteps/elektron_stm/src/timer.h
+
+/home/robot/jposteps/elektron_stm/src/timer.h
+functional
+-
+chrono
+-
+future
+-
+cstdio
+-
 
 /home/robot/jposteps/elektron_stm/src/yahdlc/C/yahdlc.h
 errno.h

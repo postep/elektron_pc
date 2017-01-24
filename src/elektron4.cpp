@@ -13,7 +13,7 @@ CommunicationBuffer buffer;
 void txLoop(void){
 	std::cout << buffer.initCommunication();
 	while(1){
-		buffer.setDrivesSpeed(100, 100);
+		buffer.setDrivesSpeed(70, -70);
 		std::cout << "txLoop" << std::endl;
 		std::cout << buffer.send() << std::endl;
 		usleep(10000);
