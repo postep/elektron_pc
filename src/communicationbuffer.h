@@ -33,8 +33,8 @@ using namespace std;
 typedef struct 
 {
 	uint32_t timestamp;
-	int8_t left_speed;
-	int8_t right_speed;
+	int16_t left_speed;
+	int16_t right_speed;
 	uint8_t relays;
 	uint8_t sound;
 	uint8_t shutdown;
@@ -66,7 +66,7 @@ class CommunicationBuffer{
 public:
 	CommunicationBuffer();
 	~CommunicationBuffer();
-	void setDrivesSpeed(int8_t left, int8_t right);
+	void setDrivesSpeed(int16_t left, int16_t right);
 	void setSound(SOUNDS s);
 	void setRelay1(bool b);
 	void setRelay2(bool b);
@@ -102,7 +102,7 @@ private:
 	bool helpButtons(uint8_t no);
 	int create_hdlc_frame(char* frame, TxFrame &package);
 	unsigned fill_timestamp(TxFrame &package);
-	double get_ping_pong_time(TxFrame & package);
+	double get_ping_pong_time(RxFrame & package);
 	queue <char> rx_data;
 	char rx_global_buffer[MESSAGE_BUFFER_LEN];
 	int rx_global_iterator = 0;

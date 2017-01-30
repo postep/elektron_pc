@@ -3,20 +3,25 @@
 #include<stdio.h>
 #include <termios.h>            //termios, TCSANOW, ECHO, ICANON
 #include <unistd.h>     //STDIN_FILENO
-
+#include <cstdlib>
 
 #include "communicationbuffer.h"
 #include "timer.h"
 
 CommunicationBuffer buffer;
-
+int left_speed = 0;
+int right_speed = 0;
 void txLoop(void){
 	std::cout << buffer.initCommunication();
 	while(1){
-		buffer.setDrivesSpeed(70, -70);
+		left_speed++;
+		if(left_speed>150){
+			left_speed = 0;
+		}
+		buffer.setDrivesSpeed(left_speed, right_speed);
 		std::cout << "txLoop" << std::endl;
 		std::cout << buffer.send() << std::endl;
-		usleep(10000);
+		usleep(100000);
 		buffer.receive();
 		buffer.print();
 	}
@@ -99,6 +104,10 @@ void userLoop(){
 
 int main(int argc, char const *argv[])
 {
+	if(argc == 3){
+		left_speed = atoi(argv[1]);
+		right_speed = atoi(argv[2]);
+	}
 	std::thread userThread(userLoop);
 	std::thread txThread(txLoop);
 	userThread.join();

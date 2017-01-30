@@ -11,7 +11,7 @@ CommunicationBuffer::CommunicationBuffer(){
 CommunicationBuffer::~CommunicationBuffer(){
 }
 
-void CommunicationBuffer::setDrivesSpeed(int8_t left, int8_t right){
+void CommunicationBuffer::setDrivesSpeed(int16_t left, int16_t right){
 	std::lock_guard<std::mutex> lock(txMutex);
 	this->txFrame.left_speed = left;
 	this->txFrame.right_speed = right;
@@ -169,8 +169,9 @@ int CommunicationBuffer::receive(){
 			auto tx_iter = tx_timestamps_set.find(package.timestamp);
 			if(tx_iter != tx_timestamps_set.end()){
 				//rx_packages.push(DataRx(package, control_recv.seq_no & 0x7e, (control_recv.seq_no >> 7) & 0x1));
-				//tx_timestamps_set.erase(tx_iter);
+				tx_timestamps_set.erase(tx_iter);
 				std::cout << "received" << package.timestamp << std::endl;
+				std::cout << this->get_ping_pong_time(package) << std::endl;
 				this->rxMutex.lock();
 				this->rxFrame = package;
 				this->rxMutex.unlock();
@@ -248,7 +249,7 @@ unsigned CommunicationBuffer::fill_timestamp(TxFrame &package){
 	return package.timestamp;
 }
 
-double CommunicationBuffer::get_ping_pong_time(TxFrame & package){
+double CommunicationBuffer::get_ping_pong_time(RxFrame & package){
 	struct timeval tv;
 	gettimeofday(&tv, NULL);
 	unsigned int ret = tv.tv_usec + 1000000*tv.tv_sec - package.timestamp;
