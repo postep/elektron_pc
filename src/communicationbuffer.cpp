@@ -6,6 +6,8 @@ CommunicationBuffer::CommunicationBuffer(){
 	this->txFrame.left_speed = 0;
 	this->txFrame.right_speed = 0;
 	this->txFrame.shutdown = 0;
+	this->txFrame.sound = 0;
+	this->sound_send_counter = 0;
 }
 
 CommunicationBuffer::~CommunicationBuffer(){
@@ -20,6 +22,7 @@ void CommunicationBuffer::setDrivesSpeed(int16_t left, int16_t right){
 void CommunicationBuffer::setSound(SOUNDS s){
 	std::lock_guard<std::mutex> lock(txMutex);
 	this->txFrame.sound = (uint8_t)s;
+	this->sound_send_counter = 5;
 }
 
 void CommunicationBuffer::setRelay1(bool b){
@@ -133,6 +136,13 @@ int CommunicationBuffer::send(){
 	}
 	if (ret > -SEND_REPEAT){
 		tx_timestamps_set.insert(timestamp);
+	}
+
+	if(this->sound_send_counter > 0){
+		this->sound_send_counter--;
+	}else{
+		this->sound_send_counter = 0;
+		this->txFrame.sound = 0;
 	}
 	return ret;
 }

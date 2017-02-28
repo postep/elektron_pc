@@ -52,9 +52,11 @@ typedef struct
 
 enum SOUNDS
 {
-	NO_SOUND,
-	FIRST_SOUND,
-	SECOND_SOUND
+	NO_SOUND = 0,
+	FIRST_SOUND = 1,
+	SECOND_SOUND = 2,
+	THIRD_SOUND = 3,
+	BATTERY_SOUND = 10
 };
 
 enum ERRORS
@@ -111,6 +113,7 @@ private:
 	int set_interface_attribs (int fd, int speed, int parity);
 	int set_blocking (int fd, int should_block);
 	void error_message(char * string);
+	int sound_send_counter;
 };
 
 #endif

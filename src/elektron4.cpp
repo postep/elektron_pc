@@ -12,6 +12,7 @@ CommunicationBuffer buffer;
 int left_speed = 0;
 int right_speed = 0;
 void txLoop(void){
+	int counter = 0;
 	std::cout << buffer.initCommunication();
 	while(1){
 		left_speed++;
@@ -21,9 +22,13 @@ void txLoop(void){
 		buffer.setDrivesSpeed(left_speed, right_speed);
 		std::cout << "txLoop" << std::endl;
 		std::cout << buffer.send() << std::endl;
-		usleep(100000);
-		buffer.receive();
-		buffer.print();
+		usleep(8000);
+		std::cout << buffer.receive() << std::endl;
+		//buffer.print();
+		counter++;
+		if(counter == 10){
+			buffer.setSound(FIRST_SOUND);
+		}
 	}
 }
 
